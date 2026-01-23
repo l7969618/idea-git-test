@@ -1,0 +1,11 @@
+spring:
+  redis:
+    cluster:
+      nodes: ${REDIS_CLUSTER_NODES:10.0.0.1:6379,10.0.0.2:6379,10.0.0.3:6379}
+    password: ${REDIS_PASSWORD:}
+    timeout: 5s
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
