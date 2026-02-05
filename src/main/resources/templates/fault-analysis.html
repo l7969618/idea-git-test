@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>故障分析页面</title>
+    <style>
+        body { font-family: "Helvetica Neue", Arial, sans-serif; margin: 24px; }
+        .container { max-width: 920px; margin: 0 auto; }
+        .row { display: flex; gap: 16px; }
+        .row > div { flex: 1; }
+        label { display: block; margin-top: 12px; font-weight: 600; }
+        input, textarea { width: 100%; padding: 8px; box-sizing: border-box; }
+        .actions { margin-top: 16px; display: flex; gap: 12px; }
+        .records { margin-top: 32px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f2f2f2; }
+        .alert { padding: 10px; background: #eaf7ea; border: 1px solid #c7e5c7; margin-top: 12px; }
+        .error { color: #c00; font-size: 12px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>RSP 终端故障分析</h1>
+    <p>用于查询终端当前信息并保存故障分析记录。</p>
+
+    <div th:if="${successMessage}" class="alert" th:text="${successMessage}"></div>
+
+    <form th:action="@{/fault-analysis}" method="post" enctype="multipart/form-data" th:object="${form}">
+        <div class="actions">
+            <button type="button" onclick="loadDeviceInfo()">查询终端信息</button>
+            <button type="submit">提交保存</button>
+        </div>
+
+        <div class="row">
+            <div>
+                <label for="terminalIp">终端当前IP</label>
+                <input id="terminalIp" type="text" th:field="*{terminalIp}">
+                <div class="error" th:if="${#fields.hasErrors('terminalIp')}" th:errors="*{terminalIp}"></div>
+            </div>
+            <div>
+                <label for="location">地理位置</label>
+                <input id="location" type="text" th:field="*{location}" placeholder="如：深圳/北京">
+            </div>
+        </div>
+
+        <div class="row">
+            <div>
+                <label for="deviceModel">设备型号</label>
+                <input id="deviceModel" type="text" th:field="*{deviceModel}">
+                <div class="error" th:if="${#fields.hasErrors('deviceModel')}" th:errors="*{deviceModel}"></div>
+            </div>
+            <div>
+                <label for="deviceVersion">设备版本</label>
+                <input id="deviceVersion" type="text" th:field="*{deviceVersion}">
+                <div class="error" th:if="${#fields.hasErrors('deviceVersion')}" th:errors="*{deviceVersion}"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div>
+                <label for="iccid">ICCID（可选）</label>
+                <input id="iccid" type="text" th:field="*{iccid}">
+            </div>
+            <div>
+                <label for="domain">需检测的域名</label>
+                <input id="domain" type="text" th:field="*{domain}" placeholder="如：www.example.com">
+            </div>
+        </div>
+
+        <label for="qrcode">二维码上传（可选）</label>
+        <input id="qrcode" type="file" name="qrcode" accept="image/*">
+    </form>
+
+    <div class="records">
+        <h2>最近提交记录</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>终端IP</th>
+                <th>位置</th>
+                <th>型号</th>
+                <th>版本</th>
+                <th>ICCID</th>
+                <th>域名检测</th>
+                <th>二维码</th>
+                <th>提交时间</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${records.size() == 0}">
+                <td colspan="9">暂无记录</td>
+            </tr>
+            <tr th:each="record : ${records}">
+                <td th:text="${record.id}"></td>
+                <td th:text="${record.terminalIp}"></td>
+                <td th:text="${record.location}"></td>
+                <td th:text="${record.deviceModel}"></td>
+                <td th:text="${record.deviceVersion}"></td>
+                <td th:text="${record.iccid}"></td>
+                <td>
+                    <div th:text="${record.domainCheckStatus}"></div>
+                    <div th:text="${record.domainCheckMessage}"></div>
+                </td>
+                <td th:text="${record.qrcodeFilename}"></td>
+                <td th:text="${#temporals.format(record.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function loadDeviceInfo() {
+        fetch('/fault-analysis/device-info')
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                document.getElementById('terminalIp').value = data.terminalIp || '';
+                document.getElementById('location').value = data.location || '';
+                document.getElementById('deviceModel').value = data.deviceModel || '';
+                document.getElementById('deviceVersion').value = data.deviceVersion || '';
+            })
+            .catch(function () {
+                alert('终端信息查询失败，请手动填写。');
+            });
+    }
+</script>
+</body>
+</html>
