@@ -1,4 +1,18 @@
 spring:
+  datasource:
+    url: jdbc:h2:file:./data/fault-analysis;DB_CLOSE_ON_EXIT=FALSE;AUTO_SERVER=TRUE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  h2:
+    console:
+      enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
   redis:
     cluster:
       nodes: ${REDIS_CLUSTER_NODES:10.0.0.1:6379,10.0.0.2:6379,10.0.0.3:6379}
@@ -9,3 +23,7 @@ spring:
         max-active: 8
         max-idle: 8
         min-idle: 0
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
